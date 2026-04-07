@@ -91,7 +91,6 @@ function App() {
             onParamsChange={setParams}
             onStartCalculation={handleStart}
             rendererRef={rendererRef}
-            showBlockOutlines={showBlockOutlines}
           />
         </div>
         <StatusBar completed={completed} total={total} calculating={calculating} />

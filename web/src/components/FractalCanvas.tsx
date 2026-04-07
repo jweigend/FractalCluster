@@ -7,7 +7,6 @@ interface Props {
   onParamsChange: (params: CalcParams) => void;
   onStartCalculation: (overrideParams?: CalcParams) => void;
   rendererRef: React.RefObject<FractalRenderer | null>;
-  showBlockOutlines: boolean;
 }
 
 export function FractalCanvas({
@@ -15,7 +14,6 @@ export function FractalCanvas({
   onParamsChange,
   onStartCalculation,
   rendererRef,
-  showBlockOutlines: _showBlockOutlines,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);

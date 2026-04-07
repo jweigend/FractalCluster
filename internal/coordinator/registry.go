@@ -118,8 +118,8 @@ func (r *Registry) rebuildAddrs() {
 
 // NextWorker returns the next worker using round-robin.
 func (r *Registry) NextWorker() pb.FractalWorkerClient {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	n := len(r.addrs)
 	if n == 0 {

@@ -106,6 +106,12 @@ web/
 docker/              Dockerfiles and compose (optional, for distributed deployment)
 ```
 
+## Origin
+
+This project originated as a student project (_Studienarbeit_) at the [Technical University of Applied Sciences Rosenheim](https://www.th-rosenheim.de/) (TH Rosenheim). The original 1998 version demonstrated distributed computing using VB6 and COM+/DCOM across networked Windows machines. This modern rewrite preserves the core idea while replacing the entire technology stack.
+
+The original VB6 source code is included in [`reference/`](reference/) for historical reference.
+
 ## 1998 vs 2026
 
 | | VB6/COM+ (1998) | Go/gRPC/React (2026) |

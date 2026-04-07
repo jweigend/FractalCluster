@@ -81,20 +81,26 @@ export function ParameterPanel({
       </label>
 
       <div style={styles.buttons}>
-        <button
-          onClick={onStart}
-          disabled={calculating || !connected}
-          style={{ ...styles.btn, ...styles.btnStart }}
-        >
-          Start
-        </button>
-        <button
-          onClick={onStop}
-          disabled={!calculating}
-          style={{ ...styles.btn, ...styles.btnStop }}
-        >
-          Stop
-        </button>
+        {calculating ? (
+          <button
+            onClick={onStop}
+            style={{ ...styles.btn, ...styles.btnStop }}
+          >
+            Stop
+          </button>
+        ) : (
+          <button
+            onClick={onStart}
+            disabled={!connected}
+            style={{
+              ...styles.btn,
+              ...styles.btnStart,
+              ...(!connected ? styles.btnDisabled : {}),
+            }}
+          >
+            Start
+          </button>
+        )}
       </div>
 
       <div style={{ ...styles.status, color: connected ? "#4a4" : "#a44" }}>
@@ -151,8 +157,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: "bold",
     fontSize: 13,
   },
-  btnStart: { background: "#2a6", color: "#fff" },
-  btnStop: { background: "#a44", color: "#fff" },
+  btnStart: { background: "#2a6", color: "#fff", cursor: "pointer" },
+  btnStop: { background: "#a44", color: "#fff", cursor: "pointer" },
+  btnDisabled: { opacity: 0.4, cursor: "not-allowed" },
   status: {
     marginTop: 8,
     fontSize: 11,

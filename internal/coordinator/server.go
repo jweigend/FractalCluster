@@ -40,6 +40,8 @@ func (s *Server) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("WebSocket client connected")
 
+	wsMu := &sync.Mutex{}
+
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
@@ -61,7 +63,7 @@ func (s *Server) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 				s.sendError(conn, "Invalid start message")
 				continue
 			}
-			s.handleStart(conn, startMsg.Params)
+			s.handleStart(conn, wsMu, startMsg.Params)
 
 		case "stop":
 			s.handleStop()
@@ -69,7 +71,7 @@ func (s *Server) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) handleStart(conn *websocket.Conn, params protocol.CalcParams) {
+func (s *Server) handleStart(conn *websocket.Conn, wsMu *sync.Mutex, params protocol.CalcParams) {
 	s.handleStop() // Cancel any running calculation
 
 	if params.FractalType == "" {
@@ -97,9 +99,10 @@ func (s *Server) handleStart(conn *websocket.Conn, params protocol.CalcParams) {
 	s.cancelFn = cancel
 	s.mu.Unlock()
 
-	wsMu := &sync.Mutex{}
-
 	go s.dispatcher.Dispatch(ctx, params, blocks, func(block Block) {
+		if ctx.Err() != nil {
+			return
+		}
 		wsMu.Lock()
 		defer wsMu.Unlock()
 
@@ -112,6 +115,9 @@ func (s *Server) handleStart(conn *websocket.Conn, params protocol.CalcParams) {
 			Height:  block.Height,
 		})
 	}, func(result DispatchResult, completed, total int) {
+		if ctx.Err() != nil {
+			return
+		}
 		wsMu.Lock()
 		defer wsMu.Unlock()
 
