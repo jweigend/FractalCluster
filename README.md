@@ -1,8 +1,8 @@
+![Screenshot](images/Screenshot.png)
+
 # Fractal Cluster
 
 A distributed fractal renderer built with Go, gRPC, and React. Originally inspired by a VB6/COM+ demo from 1998 that showcased distributed computing across networked Windows machines, this project reimagines the same concept with a modern stack.
-
-![Screenshot](images/Screenshot.png)
 
 ## Architecture
 
