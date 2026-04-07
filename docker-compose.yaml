@@ -1,0 +1,24 @@
+services:
+  coordinator:
+    build:
+      context: .
+      dockerfile: Dockerfile.coordinator
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./workers-docker.yaml:/workers.yaml:ro
+    depends_on:
+      - worker1
+      - worker2
+
+  worker1:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: ["-port", "50051"]
+
+  worker2:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: ["-port", "50051"]

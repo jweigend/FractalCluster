@@ -1,0 +1,3 @@
+workers:
+  - address: "worker1:50051"
+  - address: "worker2:50051"

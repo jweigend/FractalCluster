@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package fractal;
+
+option go_package = "fractal-cluster/internal/gen/fractal";
+
+service FractalWorker {
+  rpc Compute(ComputeRequest) returns (ComputeResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+message ComputeRequest {
+  string fractal_type = 1;
+  double real_min = 2;
+  double real_max = 3;
+  double imag_min = 4;
+  double imag_max = 5;
+  int32 pixel_width = 6;
+  int32 pixel_height = 7;
+  int32 max_iterations = 8;
+  string block_id = 9;
+}
+
+message ComputeResponse {
+  string block_id = 1;
+  repeated uint32 iterations = 2;
+  int32 pixel_width = 3;
+  int32 pixel_height = 4;
+}
+
+message HeartbeatRequest {}
+
+message HeartbeatResponse {
+  bool healthy = 1;
+}
