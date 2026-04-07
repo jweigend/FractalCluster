@@ -1,6 +1,6 @@
 # Fractal Cluster
 
-A distributed fractal renderer built with Go, gRPC, and React. Originally inspired by a VB6/COM+ demo from 1996 that showcased distributed computing across networked Windows machines, this project reimagines the same concept with a modern stack.
+A distributed fractal renderer built with Go, gRPC, and React. Originally inspired by a VB6/COM+ demo from 1998 that showcased distributed computing across networked Windows machines, this project reimagines the same concept with a modern stack.
 
 ![Screenshot](images/Screenshot.png)
 
@@ -106,9 +106,9 @@ web/
 docker/              Dockerfiles and compose (optional, for distributed deployment)
 ```
 
-## 1996 vs 2026
+## 1998 vs 2026
 
-| | VB6/COM+ (1996) | Go/gRPC/React (2026) |
+| | VB6/COM+ (1998) | Go/gRPC/React (2026) |
 |---|---|---|
 | Compute nodes | COM+ objects on Windows machines | gRPC workers (any OS, containerized) |
 | Communication | DCOM (binary, Windows-only) | gRPC + Protobuf (cross-platform, HTTP/2) |
