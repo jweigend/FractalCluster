@@ -1,0 +1,19 @@
+services:
+  coordinator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.coordinator
+    ports:
+      - "8080:8080"
+
+  worker1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    command: ["-port", "50051", "-coordinator", "coordinator:9090", "-advertise", "worker1:50051"]
+
+  worker2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    command: ["-port", "50051", "-coordinator", "coordinator:9090", "-advertise", "worker2:50051"]

@@ -19,8 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FractalWorker_Compute_FullMethodName   = "/fractal.FractalWorker/Compute"
-	FractalWorker_Heartbeat_FullMethodName = "/fractal.FractalWorker/Heartbeat"
+	FractalWorker_Compute_FullMethodName = "/fractal.FractalWorker/Compute"
 )
 
 // FractalWorkerClient is the client API for FractalWorker service.
@@ -28,7 +27,6 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FractalWorkerClient interface {
 	Compute(ctx context.Context, in *ComputeRequest, opts ...grpc.CallOption) (*ComputeResponse, error)
-	Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error)
 }
 
 type fractalWorkerClient struct {
@@ -49,22 +47,11 @@ func (c *fractalWorkerClient) Compute(ctx context.Context, in *ComputeRequest, o
 	return out, nil
 }
 
-func (c *fractalWorkerClient) Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HeartbeatResponse)
-	err := c.cc.Invoke(ctx, FractalWorker_Heartbeat_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // FractalWorkerServer is the server API for FractalWorker service.
 // All implementations must embed UnimplementedFractalWorkerServer
 // for forward compatibility.
 type FractalWorkerServer interface {
 	Compute(context.Context, *ComputeRequest) (*ComputeResponse, error)
-	Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error)
 	mustEmbedUnimplementedFractalWorkerServer()
 }
 
@@ -77,9 +64,6 @@ type UnimplementedFractalWorkerServer struct{}
 
 func (UnimplementedFractalWorkerServer) Compute(context.Context, *ComputeRequest) (*ComputeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Compute not implemented")
-}
-func (UnimplementedFractalWorkerServer) Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Heartbeat not implemented")
 }
 func (UnimplementedFractalWorkerServer) mustEmbedUnimplementedFractalWorkerServer() {}
 func (UnimplementedFractalWorkerServer) testEmbeddedByValue()                       {}
@@ -120,24 +104,6 @@ func _FractalWorker_Compute_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FractalWorker_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HeartbeatRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FractalWorkerServer).Heartbeat(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FractalWorker_Heartbeat_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FractalWorkerServer).Heartbeat(ctx, req.(*HeartbeatRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // FractalWorker_ServiceDesc is the grpc.ServiceDesc for FractalWorker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -149,9 +115,145 @@ var FractalWorker_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Compute",
 			Handler:    _FractalWorker_Compute_Handler,
 		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "fractal.proto",
+}
+
+const (
+	FractalCoordinator_Register_FullMethodName  = "/fractal.FractalCoordinator/Register"
+	FractalCoordinator_Heartbeat_FullMethodName = "/fractal.FractalCoordinator/Heartbeat"
+)
+
+// FractalCoordinatorClient is the client API for FractalCoordinator service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type FractalCoordinatorClient interface {
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Heartbeat(ctx context.Context, in *WorkerHeartbeatRequest, opts ...grpc.CallOption) (*WorkerHeartbeatResponse, error)
+}
+
+type fractalCoordinatorClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewFractalCoordinatorClient(cc grpc.ClientConnInterface) FractalCoordinatorClient {
+	return &fractalCoordinatorClient{cc}
+}
+
+func (c *fractalCoordinatorClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterResponse)
+	err := c.cc.Invoke(ctx, FractalCoordinator_Register_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fractalCoordinatorClient) Heartbeat(ctx context.Context, in *WorkerHeartbeatRequest, opts ...grpc.CallOption) (*WorkerHeartbeatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkerHeartbeatResponse)
+	err := c.cc.Invoke(ctx, FractalCoordinator_Heartbeat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// FractalCoordinatorServer is the server API for FractalCoordinator service.
+// All implementations must embed UnimplementedFractalCoordinatorServer
+// for forward compatibility.
+type FractalCoordinatorServer interface {
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Heartbeat(context.Context, *WorkerHeartbeatRequest) (*WorkerHeartbeatResponse, error)
+	mustEmbedUnimplementedFractalCoordinatorServer()
+}
+
+// UnimplementedFractalCoordinatorServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedFractalCoordinatorServer struct{}
+
+func (UnimplementedFractalCoordinatorServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedFractalCoordinatorServer) Heartbeat(context.Context, *WorkerHeartbeatRequest) (*WorkerHeartbeatResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Heartbeat not implemented")
+}
+func (UnimplementedFractalCoordinatorServer) mustEmbedUnimplementedFractalCoordinatorServer() {}
+func (UnimplementedFractalCoordinatorServer) testEmbeddedByValue()                            {}
+
+// UnsafeFractalCoordinatorServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FractalCoordinatorServer will
+// result in compilation errors.
+type UnsafeFractalCoordinatorServer interface {
+	mustEmbedUnimplementedFractalCoordinatorServer()
+}
+
+func RegisterFractalCoordinatorServer(s grpc.ServiceRegistrar, srv FractalCoordinatorServer) {
+	// If the following call panics, it indicates UnimplementedFractalCoordinatorServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&FractalCoordinator_ServiceDesc, srv)
+}
+
+func _FractalCoordinator_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FractalCoordinatorServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FractalCoordinator_Register_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FractalCoordinatorServer).Register(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FractalCoordinator_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkerHeartbeatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FractalCoordinatorServer).Heartbeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FractalCoordinator_Heartbeat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FractalCoordinatorServer).Heartbeat(ctx, req.(*WorkerHeartbeatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// FractalCoordinator_ServiceDesc is the grpc.ServiceDesc for FractalCoordinator service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var FractalCoordinator_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "fractal.FractalCoordinator",
+	HandlerType: (*FractalCoordinatorServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _FractalCoordinator_Register_Handler,
+		},
 		{
 			MethodName: "Heartbeat",
-			Handler:    _FractalWorker_Heartbeat_Handler,
+			Handler:    _FractalCoordinator_Heartbeat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

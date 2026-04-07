@@ -41,6 +41,3 @@ func (s *Server) Compute(ctx context.Context, req *pb.ComputeRequest) (*pb.Compu
 	}, nil
 }
 
-func (s *Server) Heartbeat(ctx context.Context, req *pb.HeartbeatRequest) (*pb.HeartbeatResponse, error) {
-	return &pb.HeartbeatResponse{Healthy: true}, nil
-}

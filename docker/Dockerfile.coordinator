@@ -15,5 +15,4 @@ RUN CGO_ENABLED=0 go build -o /coordinator ./cmd/coordinator
 FROM alpine:3.20
 COPY --from=backend /coordinator /coordinator
 COPY --from=frontend /web/dist /web/dist
-COPY workers.yaml /workers.yaml
-ENTRYPOINT ["/coordinator", "-web", "/web/dist", "-workers", "/workers.yaml"]
+ENTRYPOINT ["/coordinator", "-web", "/web/dist"]

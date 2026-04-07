@@ -197,26 +197,27 @@ func (x *ComputeResponse) GetPixelHeight() int32 {
 	return 0
 }
 
-type HeartbeatRequest struct {
+type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkerAddress string                 `protobuf:"bytes,1,opt,name=worker_address,json=workerAddress,proto3" json:"worker_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HeartbeatRequest) Reset() {
-	*x = HeartbeatRequest{}
+func (x *RegisterRequest) Reset() {
+	*x = RegisterRequest{}
 	mi := &file_fractal_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HeartbeatRequest) String() string {
+func (x *RegisterRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HeartbeatRequest) ProtoMessage() {}
+func (*RegisterRequest) ProtoMessage() {}
 
-func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
+func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_fractal_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -228,32 +229,39 @@ func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HeartbeatRequest.ProtoReflect.Descriptor instead.
-func (*HeartbeatRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
+func (*RegisterRequest) Descriptor() ([]byte, []int) {
 	return file_fractal_proto_rawDescGZIP(), []int{2}
 }
 
-type HeartbeatResponse struct {
+func (x *RegisterRequest) GetWorkerAddress() string {
+	if x != nil {
+		return x.WorkerAddress
+	}
+	return ""
+}
+
+type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Healthy       bool                   `protobuf:"varint,1,opt,name=healthy,proto3" json:"healthy,omitempty"`
+	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HeartbeatResponse) Reset() {
-	*x = HeartbeatResponse{}
+func (x *RegisterResponse) Reset() {
+	*x = RegisterResponse{}
 	mi := &file_fractal_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HeartbeatResponse) String() string {
+func (x *RegisterResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HeartbeatResponse) ProtoMessage() {}
+func (*RegisterResponse) ProtoMessage() {}
 
-func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
+func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_fractal_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -265,14 +273,102 @@ func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HeartbeatResponse.ProtoReflect.Descriptor instead.
-func (*HeartbeatResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
+func (*RegisterResponse) Descriptor() ([]byte, []int) {
 	return file_fractal_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *HeartbeatResponse) GetHealthy() bool {
+func (x *RegisterResponse) GetAccepted() bool {
 	if x != nil {
-		return x.Healthy
+		return x.Accepted
+	}
+	return false
+}
+
+type WorkerHeartbeatRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkerAddress string                 `protobuf:"bytes,1,opt,name=worker_address,json=workerAddress,proto3" json:"worker_address,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkerHeartbeatRequest) Reset() {
+	*x = WorkerHeartbeatRequest{}
+	mi := &file_fractal_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkerHeartbeatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkerHeartbeatRequest) ProtoMessage() {}
+
+func (x *WorkerHeartbeatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_fractal_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkerHeartbeatRequest.ProtoReflect.Descriptor instead.
+func (*WorkerHeartbeatRequest) Descriptor() ([]byte, []int) {
+	return file_fractal_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *WorkerHeartbeatRequest) GetWorkerAddress() string {
+	if x != nil {
+		return x.WorkerAddress
+	}
+	return ""
+}
+
+type WorkerHeartbeatResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Acknowledged  bool                   `protobuf:"varint,1,opt,name=acknowledged,proto3" json:"acknowledged,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkerHeartbeatResponse) Reset() {
+	*x = WorkerHeartbeatResponse{}
+	mi := &file_fractal_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkerHeartbeatResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkerHeartbeatResponse) ProtoMessage() {}
+
+func (x *WorkerHeartbeatResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_fractal_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkerHeartbeatResponse.ProtoReflect.Descriptor instead.
+func (*WorkerHeartbeatResponse) Descriptor() ([]byte, []int) {
+	return file_fractal_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WorkerHeartbeatResponse) GetAcknowledged() bool {
+	if x != nil {
+		return x.Acknowledged
 	}
 	return false
 }
@@ -300,13 +396,20 @@ const file_fractal_proto_rawDesc = "" +
 	"iterations\x12\x1f\n" +
 	"\vpixel_width\x18\x03 \x01(\x05R\n" +
 	"pixelWidth\x12!\n" +
-	"\fpixel_height\x18\x04 \x01(\x05R\vpixelHeight\"\x12\n" +
-	"\x10HeartbeatRequest\"-\n" +
-	"\x11HeartbeatResponse\x12\x18\n" +
-	"\ahealthy\x18\x01 \x01(\bR\ahealthy2\x91\x01\n" +
+	"\fpixel_height\x18\x04 \x01(\x05R\vpixelHeight\"8\n" +
+	"\x0fRegisterRequest\x12%\n" +
+	"\x0eworker_address\x18\x01 \x01(\tR\rworkerAddress\".\n" +
+	"\x10RegisterResponse\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\"?\n" +
+	"\x16WorkerHeartbeatRequest\x12%\n" +
+	"\x0eworker_address\x18\x01 \x01(\tR\rworkerAddress\"=\n" +
+	"\x17WorkerHeartbeatResponse\x12\"\n" +
+	"\facknowledged\x18\x01 \x01(\bR\facknowledged2M\n" +
 	"\rFractalWorker\x12<\n" +
-	"\aCompute\x12\x17.fractal.ComputeRequest\x1a\x18.fractal.ComputeResponse\x12B\n" +
-	"\tHeartbeat\x12\x19.fractal.HeartbeatRequest\x1a\x1a.fractal.HeartbeatResponseB&Z$fractal-cluster/internal/gen/fractalb\x06proto3"
+	"\aCompute\x12\x17.fractal.ComputeRequest\x1a\x18.fractal.ComputeResponse2\xa5\x01\n" +
+	"\x12FractalCoordinator\x12?\n" +
+	"\bRegister\x12\x18.fractal.RegisterRequest\x1a\x19.fractal.RegisterResponse\x12N\n" +
+	"\tHeartbeat\x12\x1f.fractal.WorkerHeartbeatRequest\x1a .fractal.WorkerHeartbeatResponseB&Z$fractal-cluster/internal/gen/fractalb\x06proto3"
 
 var (
 	file_fractal_proto_rawDescOnce sync.Once
@@ -320,20 +423,24 @@ func file_fractal_proto_rawDescGZIP() []byte {
 	return file_fractal_proto_rawDescData
 }
 
-var file_fractal_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_fractal_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_fractal_proto_goTypes = []any{
-	(*ComputeRequest)(nil),    // 0: fractal.ComputeRequest
-	(*ComputeResponse)(nil),   // 1: fractal.ComputeResponse
-	(*HeartbeatRequest)(nil),  // 2: fractal.HeartbeatRequest
-	(*HeartbeatResponse)(nil), // 3: fractal.HeartbeatResponse
+	(*ComputeRequest)(nil),          // 0: fractal.ComputeRequest
+	(*ComputeResponse)(nil),         // 1: fractal.ComputeResponse
+	(*RegisterRequest)(nil),         // 2: fractal.RegisterRequest
+	(*RegisterResponse)(nil),        // 3: fractal.RegisterResponse
+	(*WorkerHeartbeatRequest)(nil),  // 4: fractal.WorkerHeartbeatRequest
+	(*WorkerHeartbeatResponse)(nil), // 5: fractal.WorkerHeartbeatResponse
 }
 var file_fractal_proto_depIdxs = []int32{
 	0, // 0: fractal.FractalWorker.Compute:input_type -> fractal.ComputeRequest
-	2, // 1: fractal.FractalWorker.Heartbeat:input_type -> fractal.HeartbeatRequest
-	1, // 2: fractal.FractalWorker.Compute:output_type -> fractal.ComputeResponse
-	3, // 3: fractal.FractalWorker.Heartbeat:output_type -> fractal.HeartbeatResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	2, // 1: fractal.FractalCoordinator.Register:input_type -> fractal.RegisterRequest
+	4, // 2: fractal.FractalCoordinator.Heartbeat:input_type -> fractal.WorkerHeartbeatRequest
+	1, // 3: fractal.FractalWorker.Compute:output_type -> fractal.ComputeResponse
+	3, // 4: fractal.FractalCoordinator.Register:output_type -> fractal.RegisterResponse
+	5, // 5: fractal.FractalCoordinator.Heartbeat:output_type -> fractal.WorkerHeartbeatResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -350,9 +457,9 @@ func file_fractal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_fractal_proto_rawDesc), len(file_fractal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_fractal_proto_goTypes,
 		DependencyIndexes: file_fractal_proto_depIdxs,

@@ -3,36 +3,49 @@ package main
 import (
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
 	"fractal-cluster/internal/coordinator"
+	pb "fractal-cluster/internal/gen/fractal"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
 	port := flag.String("port", "8080", "HTTP listen port")
-	workersFile := flag.String("workers", "workers.yaml", "Path to workers config file")
+	grpcPort := flag.String("grpc-port", "9090", "gRPC listen port for worker registration")
 	webDir := flag.String("web", "web/dist", "Path to frontend build directory")
 	flag.Parse()
 
-	registry, err := coordinator.NewRegistry(*workersFile)
-	if err != nil {
-		log.Fatalf("Failed to load workers config: %v", err)
-	}
+	registry := coordinator.NewRegistry(30 * time.Second)
 	defer registry.Close()
 
-	registry.Connect()
-	registry.StartHealthChecks(5 * time.Second)
+	registry.StartReaper(10 * time.Second)
+
+	// Start gRPC server for worker registration
+	go func() {
+		lis, err := net.Listen("tcp", ":"+*grpcPort)
+		if err != nil {
+			log.Fatalf("Failed to listen on gRPC port %s: %v", *grpcPort, err)
+		}
+		grpcServer := grpc.NewServer()
+		pb.RegisterFractalCoordinatorServer(grpcServer, coordinator.NewCoordinatorGRPC(registry))
+		log.Printf("Coordinator gRPC listening on :%s (worker registration)", *grpcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("gRPC server failed: %v", err)
+		}
+	}()
 
 	server := coordinator.NewServer(registry)
 
 	http.HandleFunc("/ws", server.HandleWebSocket)
 	http.Handle("/", http.FileServer(http.Dir(*webDir)))
 
-	log.Printf("Coordinator listening on :%s (serving frontend from %s)", *port, *webDir)
-	log.Printf("Healthy workers: %d", registry.HealthyCount())
+	log.Printf("Coordinator HTTP listening on :%s (serving frontend from %s)", *port, *webDir)
 
 	if err := http.ListenAndServe(":"+*port, nil); err != nil {
-		log.Fatalf("Server failed: %v", err)
+		log.Fatalf("HTTP server failed: %v", err)
 	}
 }

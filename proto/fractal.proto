@@ -6,7 +6,11 @@ option go_package = "fractal-cluster/internal/gen/fractal";
 
 service FractalWorker {
   rpc Compute(ComputeRequest) returns (ComputeResponse);
-  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+service FractalCoordinator {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Heartbeat(WorkerHeartbeatRequest) returns (WorkerHeartbeatResponse);
 }
 
 message ComputeRequest {
@@ -28,8 +32,18 @@ message ComputeResponse {
   int32 pixel_height = 4;
 }
 
-message HeartbeatRequest {}
+message RegisterRequest {
+  string worker_address = 1;
+}
 
-message HeartbeatResponse {
-  bool healthy = 1;
+message RegisterResponse {
+  bool accepted = 1;
+}
+
+message WorkerHeartbeatRequest {
+  string worker_address = 1;
+}
+
+message WorkerHeartbeatResponse {
+  bool acknowledged = 1;
 }

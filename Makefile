@@ -18,20 +18,20 @@ build-web:
 
 build: build-go build-web
 
+run-coordinator:
+	go run ./cmd/coordinator -port 8080 -grpc-port 9090 -web web/dist
+
 run-worker:
-	go run ./cmd/worker -port 50051
+	go run ./cmd/worker -port 50051 -coordinator localhost:9090 -advertise localhost:50051
 
 run-worker2:
-	go run ./cmd/worker -port 50052
-
-run-coordinator:
-	go run ./cmd/coordinator -port 8080 -workers workers.yaml -web web/dist
+	go run ./cmd/worker -port 50052 -coordinator localhost:9090 -advertise localhost:50052
 
 docker:
-	docker compose up --build
+	docker compose -f docker/docker-compose.yaml up --build
 
 docker-scale:
-	docker compose up --build --scale worker2=2
+	docker compose -f docker/docker-compose.yaml up --build --scale worker2=2
 
 clean:
 	rm -rf bin/ web/dist web/node_modules
