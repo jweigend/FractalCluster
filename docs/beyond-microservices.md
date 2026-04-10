@@ -32,6 +32,49 @@ The application is deliberately small but architecturally honest. It's the kind 
 
 The whole thing is the kind of application a textbook would call "a small distributed system." In Go it weighs about 730 lines, plus some React on the frontend.
 
+In picture form, the distributed topology looks like this:
+
+```
+┌───────────┐                 ┌──────────────────────────────────┐
+│  Browser  │  HTTP GET /     │      coordinator (process)       │
+│  (React + │ ──────────────► │                                  │
+│  Canvas)  │  index.html,    │   Static FileServer (web/dist)   │
+│           │  bundle.js …    │                                  │
+│           │ ◄────────────── │                                  │
+│           │                 │                                  │
+│           │  WebSocket /ws  │   WS Server                      │
+│           │ ◄──────────────►│      │                           │
+└───────────┘   (JSON)        │      ▼                           │
+                              │   Dispatcher                     │
+                              │      │                           │
+                              │      ▼                           │
+                              │   Registry ──► GRPCEngine ──┐    │
+                              │      ▲                      │    │
+                              │      │                      │    │
+                              │   gRPC register server      │    │
+                              └──────┬──────────────────────┼────┘
+                                     │ Register / Heartbeat │ Compute
+                                     │                      │ (gRPC/TCP)
+                                     │                      ▼
+                              ┌──────┴───────────────────────────┐
+                              │       worker (process)           │
+                              │                                  │
+                              │   gRPC server                    │
+                              │      │                           │
+                              │      ▼                           │
+                              │   LocalEngine                    │
+                              │      │                           │
+                              │      ▼                           │
+                              │   fractal.Calculator             │
+                              └──────────────────────────────────┘
+
+                              ┌──────────────────────────────────┐
+                              │       worker (process)   ...     │
+                              └──────────────────────────────────┘
+```
+
+The coordinator process wears three hats at once: it's the **web server** that delivers the React bundle to the browser, it's the **WebSocket endpoint** that streams render progress back, and it's the **gRPC server** that workers register against. Three OS processes minimum, two TCP boundaries between coordinator and workers, three protocols on the wire (HTTP for static assets, WebSocket/JSON for the live render, gRPC for the compute fanout). And note where the Mandelbrot calculation lives: at the bottom of the worker, behind a network hop, behind a serialization layer, behind a registry lookup.
+
 This is also, charmingly, a rewrite of a project I built in 1998 at FH Rosenheim using Visual Basic 6 and COM+/DCOM. Same architecture: a dispatcher, worker nodes, network IPC, a GUI client. Different transport, different language, same shape. The fact that the shape survives twenty-eight years of technology change is itself a hint that the *architecture* is durable and the *transport* is incidental — which is exactly the lesson this article is about.
 
 ## How you'd build it today
@@ -188,6 +231,34 @@ func main() {
 ```
 
 That's it. Run it with `make run-allinone`, open a browser, and you have the entire application — coordinator logic, worker logic, web server, fractal calculation — in one process. One PID. One stack trace from `HandleWebSocket` all the way down to `mandelbrotIter`. One breakpoint stops everything.
+
+Here's the same picture as before, but for the all-in-one binary:
+
+```
+┌───────────┐                 ┌──────────────────────────────────┐
+│  Browser  │  HTTP GET /     │       allinone (process)         │
+│  (React + │ ──────────────► │                                  │
+│  Canvas)  │  index.html,    │   Static FileServer (web/dist)   │
+│           │  bundle.js …    │                                  │
+│           │ ◄────────────── │                                  │
+│           │                 │                                  │
+│           │  WebSocket /ws  │   WS Server                      │
+│           │ ◄──────────────►│      │                           │
+└───────────┘   (JSON)        │      ▼                           │
+                              │   Dispatcher                     │
+                              │      │                           │
+                              │      ▼                           │
+                              │   Registry ──► LocalEngine       │
+                              │                    │             │
+                              │                    ▼             │
+                              │             fractal.Calculator   │
+                              │                                  │
+                              │   (no gRPC, no registrar,        │
+                              │    no heartbeats, no proto)      │
+                              └──────────────────────────────────┘
+```
+
+Compare it to the distributed diagram a few sections up. The boxes labeled `WS Server`, `Dispatcher`, and `Registry` are *literally the same code* in both pictures. The only thing that changed is what `Registry` hands back when the dispatcher asks for an `Engine` — a `GRPCEngine` that crosses the network, or a `LocalEngine` that doesn't. Everything above the seam is unchanged. Everything below it is a one-line factory decision made at startup.
 
 ## What it cost
 
