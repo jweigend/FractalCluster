@@ -4,24 +4,28 @@ import (
 	"context"
 	"log"
 
+	"fractal-cluster/internal/compute"
 	pb "fractal-cluster/internal/gen/fractal"
-	"fractal-cluster/internal/fractal"
 )
 
+// Server is the gRPC adapter that exposes a LocalEngine to remote
+// coordinators. All actual computation happens in compute.LocalEngine,
+// which is the same code path the all-in-one binary uses.
 type Server struct {
 	pb.UnimplementedFractalWorkerServer
+	engine *compute.LocalEngine
+}
+
+func NewServer() *Server {
+	return &Server{engine: compute.NewLocalEngine()}
 }
 
 func (s *Server) Compute(ctx context.Context, req *pb.ComputeRequest) (*pb.ComputeResponse, error) {
-	calc, ok := fractal.Registry[req.FractalType]
-	if !ok {
-		calc = fractal.Registry["mandelbrot"]
-	}
-
 	log.Printf("Computing block %s: %dx%d pixels, max_iter=%d",
 		req.BlockId, req.PixelWidth, req.PixelHeight, req.MaxIterations)
 
-	params := fractal.Params{
+	resp, err := s.engine.Compute(ctx, compute.Request{
+		FractalType:   req.FractalType,
 		RealMin:       req.RealMin,
 		RealMax:       req.RealMax,
 		ImagMin:       req.ImagMin,
@@ -29,15 +33,16 @@ func (s *Server) Compute(ctx context.Context, req *pb.ComputeRequest) (*pb.Compu
 		PixelWidth:    int(req.PixelWidth),
 		PixelHeight:   int(req.PixelHeight),
 		MaxIterations: int(req.MaxIterations),
+		BlockID:       req.BlockId,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	iterations := calc.Compute(params)
-
 	return &pb.ComputeResponse{
-		BlockId:    req.BlockId,
-		Iterations: iterations,
-		PixelWidth: req.PixelWidth,
-		PixelHeight: req.PixelHeight,
+		BlockId:     resp.BlockID,
+		Iterations:  resp.Iterations,
+		PixelWidth:  int32(resp.PixelWidth),
+		PixelHeight: int32(resp.PixelHeight),
 	}, nil
 }
-

@@ -31,7 +31,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterFractalWorkerServer(s, &worker.Server{})
+	pb.RegisterFractalWorkerServer(s, worker.NewServer())
 
 	log.Printf("Worker listening on :%d", *port)
 

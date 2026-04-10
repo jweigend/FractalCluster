@@ -5,23 +5,21 @@ import (
 	"sync"
 	"time"
 
-	pb "fractal-cluster/internal/gen/fractal"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"fractal-cluster/internal/compute"
 )
 
 type WorkerEntry struct {
-	Address  string
-	conn     *grpc.ClientConn
-	client   pb.FractalWorkerClient
+	Name     string
+	engine   compute.Engine
+	close    func()
 	lastSeen time.Time
+	local    bool
 }
 
 type Registry struct {
 	mu               sync.RWMutex
 	workers          map[string]*WorkerEntry
-	addrs            []string // for round-robin
+	names            []string // for round-robin
 	nextIdx          int
 	heartbeatTimeout time.Duration
 	stopCh           chan struct{}
@@ -35,47 +33,42 @@ func NewRegistry(heartbeatTimeout time.Duration) *Registry {
 	}
 }
 
-// Register adds a new worker or refreshes an existing one.
-func (r *Registry) Register(address string) error {
+// RegisterEngine adds a worker by Engine. The gRPC registration handler
+// passes a GRPCEngine; the all-in-one binary passes a LocalEngine with
+// local=true so the reaper leaves it alone.
+func (r *Registry) RegisterEngine(name string, engine compute.Engine, closeFn func(), local bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if w, exists := r.workers[address]; exists {
+	if w, exists := r.workers[name]; exists {
 		w.lastSeen = time.Now()
-		log.Printf("Worker %s re-registered", address)
-		return nil
+		log.Printf("Worker %s re-registered", name)
+		return
 	}
 
-	conn, err := grpc.NewClient(address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return err
-	}
-
-	r.workers[address] = &WorkerEntry{
-		Address:  address,
-		conn:     conn,
-		client:   pb.NewFractalWorkerClient(conn),
+	r.workers[name] = &WorkerEntry{
+		Name:     name,
+		engine:   engine,
+		close:    closeFn,
 		lastSeen: time.Now(),
+		local:    local,
 	}
-	r.rebuildAddrs()
+	r.rebuildNames()
 
-	log.Printf("Worker %s registered (total: %d)", address, len(r.workers))
-	return nil
+	log.Printf("Worker %s registered (total: %d)", name, len(r.workers))
 }
 
-// RecordHeartbeat updates the last-seen time for a worker.
-func (r *Registry) RecordHeartbeat(address string) {
+func (r *Registry) RecordHeartbeat(name string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if w, exists := r.workers[address]; exists {
+	if w, exists := r.workers[name]; exists {
 		w.lastSeen = time.Now()
 	}
 }
 
 // StartReaper periodically removes workers that missed their heartbeat.
+// Local (in-process) workers are exempt.
 func (r *Registry) StartReaper(interval time.Duration) {
 	go func() {
 		ticker := time.NewTicker(interval)
@@ -96,39 +89,44 @@ func (r *Registry) reap() {
 	defer r.mu.Unlock()
 
 	now := time.Now()
-	for addr, w := range r.workers {
+	for name, w := range r.workers {
+		if w.local {
+			continue
+		}
 		if now.Sub(w.lastSeen) > r.heartbeatTimeout {
-			log.Printf("Worker %s timed out, removing (total: %d)", addr, len(r.workers)-1)
-			w.conn.Close()
-			delete(r.workers, addr)
+			log.Printf("Worker %s timed out, removing (total: %d)", name, len(r.workers)-1)
+			if w.close != nil {
+				w.close()
+			}
+			delete(r.workers, name)
 		}
 	}
-	r.rebuildAddrs()
+	r.rebuildNames()
 }
 
-func (r *Registry) rebuildAddrs() {
-	r.addrs = make([]string, 0, len(r.workers))
-	for addr := range r.workers {
-		r.addrs = append(r.addrs, addr)
+func (r *Registry) rebuildNames() {
+	r.names = make([]string, 0, len(r.workers))
+	for name := range r.workers {
+		r.names = append(r.names, name)
 	}
-	if r.nextIdx >= len(r.addrs) {
+	if r.nextIdx >= len(r.names) {
 		r.nextIdx = 0
 	}
 }
 
-// NextWorker returns the next worker using round-robin.
-func (r *Registry) NextWorker() pb.FractalWorkerClient {
+// NextEngine returns the next worker engine using round-robin.
+func (r *Registry) NextEngine() compute.Engine {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	n := len(r.addrs)
+	n := len(r.names)
 	if n == 0 {
 		return nil
 	}
 
-	addr := r.addrs[r.nextIdx%n]
+	name := r.names[r.nextIdx%n]
 	r.nextIdx = (r.nextIdx + 1) % n
-	return r.workers[addr].client
+	return r.workers[name].engine
 }
 
 func (r *Registry) HealthyCount() int {
@@ -142,6 +140,8 @@ func (r *Registry) Close() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for _, w := range r.workers {
-		w.conn.Close()
+		if w.close != nil {
+			w.close()
+		}
 	}
 }

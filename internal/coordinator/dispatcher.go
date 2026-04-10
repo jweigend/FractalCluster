@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	pb "fractal-cluster/internal/gen/fractal"
+	"fractal-cluster/internal/compute"
 	"fractal-cluster/internal/protocol"
 )
 
@@ -22,7 +22,7 @@ func NewDispatcher(registry *Registry) *Dispatcher {
 
 type DispatchResult struct {
 	Block  Block
-	Result *pb.ComputeResponse
+	Result *compute.Response
 	Err    error
 }
 
@@ -58,27 +58,24 @@ func (d *Dispatcher) Dispatch(ctx context.Context, params protocol.CalcParams, b
 }
 
 func (d *Dispatcher) computeBlock(ctx context.Context, params protocol.CalcParams, block Block) DispatchResult {
-	// Map block pixel coordinates to complex plane coordinates
+	// Map block pixel coordinates to complex plane coordinates.
+	// ImagMin/ImagMax are flipped because screen Y grows downward while the
+	// imaginary axis grows upward.
 	scaleR := (params.RealMax - params.RealMin) / float64(params.PicWidth)
 	scaleI := (params.ImagMax - params.ImagMin) / float64(params.PicHeight)
 
-	req := &pb.ComputeRequest{
+	req := compute.Request{
 		FractalType:   params.FractalType,
 		RealMin:       params.RealMin + float64(block.X)*scaleR,
 		RealMax:       params.RealMin + float64(block.X+block.Width)*scaleR,
-		ImagMin:       params.ImagMin + float64(block.Y)*scaleI,
-		ImagMax:       params.ImagMin + float64(block.Y+block.Height)*scaleI,
-		PixelWidth:    int32(block.Width),
-		PixelHeight:   int32(block.Height),
-		MaxIterations: int32(params.MaxIterations),
-		BlockId:       block.ID,
+		ImagMin:       params.ImagMax - float64(block.Y+block.Height)*scaleI,
+		ImagMax:       params.ImagMax - float64(block.Y)*scaleI,
+		PixelWidth:    block.Width,
+		PixelHeight:   block.Height,
+		MaxIterations: params.MaxIterations,
+		BlockID:       block.ID,
 	}
 
-	// Note: ImagMin/ImagMax need to be swapped because screen Y is inverted
-	// In the complex plane, higher Y = higher imaginary, but on screen higher Y = lower
-	req.ImagMin, req.ImagMax = params.ImagMax-float64(block.Y+block.Height)*scaleI, params.ImagMax-float64(block.Y)*scaleI
-
-	// Try to get a worker, retry on failure
 	for attempt := 0; attempt < 3; attempt++ {
 		select {
 		case <-ctx.Done():
@@ -86,14 +83,14 @@ func (d *Dispatcher) computeBlock(ctx context.Context, params protocol.CalcParam
 		default:
 		}
 
-		worker := d.registry.NextWorker()
-		if worker == nil {
+		engine := d.registry.NextEngine()
+		if engine == nil {
 			log.Printf("No healthy workers available for block %s", block.ID)
 			continue
 		}
 
 		callCtx, callCancel := context.WithTimeout(ctx, 30*time.Second)
-		resp, err := worker.Compute(callCtx, req)
+		resp, err := engine.Compute(callCtx, req)
 		callCancel()
 		if err != nil {
 			log.Printf("Worker failed for block %s (attempt %d): %v", block.ID, attempt+1, err)
